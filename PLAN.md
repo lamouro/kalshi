@@ -86,3 +86,15 @@ Every combination counts as a variant in the ledger. Weights are fitted on the t
 
 ## 8. Status log
 - 2026-11-05: plan written, repo created. Wave 1 and wave 2 research done (74 verified lanes).
+- 2026-11-05 (overnight): wave 3 research (5 lanes, verified). Data path built without a server: public
+  REST via WebFetch agents (400 calls/h budget), 13 series market lists, ~480 trade-tape windows
+  (64 events) in `/mnt/project-files/kalshi-data/`. Paper engine v0 (tape-touch fills, floor/ceiling
+  bracket, fee model incl. direct-member rounding) + 24 tests on branch `engine-v0`.
+- Crypto candles: 101 variants, 1,985 markets, none survive Holm; two-sided MM -2 to -3.5c/contract.
+- Mentions: 306 variants x PRE/OPEN windows; 575 train-selected combinations scored on test, 0 pass
+  Holm or BY. Taker and random controls negative. Flatten-before-go-live does not rescue MM.
+- Pitfall: top-volume strike sampling biases toward Yes. Slice 5 drew strikes at random.
+- Lead (unconfirmed): Yes-fade maker on random Trump-mention strikes, +5.9c/contract floor
+  (SE 2.75, 20 events, train +5.1 / test +7.3). Pre-registered as H-W3-1
+  (`results/PREREG_H_W3_1.md`); holdout slice 6 (16 unseen events) being pulled.
+- Blockers: no always-on host (AWS needs an SSH key), sandbox cannot reach Kalshi directly.

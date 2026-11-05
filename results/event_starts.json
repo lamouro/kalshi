@@ -59,5 +59,8 @@
  "KXTRUMPMENTION-26SEP10 (Trump RNC Midterm Convention Night 2). Start time: null. The event has no start_date or strike_date. The milestones endpoint ignores both filters: related_event_ticker returned a client_error, and event_ticker returned unrelated milestones. So the PRE window falls back to close-48h to close, which is 1788970104 to 1789142904. OPEN windows ran from the open, 1787852700, to open+48h, 1788025500. Each OPEN window fit on one page with an empty cursor, so none was truncated. Every trade sits in the last hours of the window, on 2026-08-29. None of the five PRE windows were collected: the WebFetch budget (400 per hour, shared by all agents) ran out on the first PRE request, CRYP, so no __pre.csv files were written. All five open files were written to /mnt/project-files/kalshi-data/trades/ and re-read after 10 s. Each held the expected row count.": null,
  "KXTRUMPMENTION-26OCT30": "2026-10-30T23:00:00Z",
  "KXTRUMPMENTION-26OCT21": "2026-10-21T23:00:00Z",
- "KXTRUMPMENTION-26OCT19": "2026-10-19T23:00:00Z"
+ "KXTRUMPMENTION-26OCT19": "2026-10-19T23:00:00Z",
+ "KXTRUMPMENTION-26AUG05": "2026-08-05T20:00:00Z",
+ "KXTRUMPMENTION-26OCT23": "2026-10-23T18:00:00Z",
+ "KXTRUMPMENTION-26SEP10": null
 }
