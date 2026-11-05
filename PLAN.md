@@ -96,5 +96,5 @@ Every combination counts as a variant in the ledger. Weights are fitted on the t
 - Pitfall: top-volume strike sampling biases toward Yes. Slice 5 drew strikes at random.
 - Lead (unconfirmed): Yes-fade maker on random Trump-mention strikes, +5.9c/contract floor
   (SE 2.75, 20 events, train +5.1 / test +7.3). Pre-registered as H-W3-1
-  (`results/PREREG_H_W3_1.md`); holdout slice 6 (16 unseen events) being pulled.
+  (`results/PREREG_H_W3_1.md`); holdout slice 6 (16 unseen events): NOT confirmed, floor -2.9c (SE 3.6, p 0.78). No strategy has a confirmed edge.
 - Blockers: no always-on host (AWS needs an SSH key), sandbox cannot reach Kalshi directly.

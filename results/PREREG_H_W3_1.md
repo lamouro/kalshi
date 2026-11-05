@@ -16,3 +16,12 @@ floor mode. One-sided cluster-robust t-test by event, H1: mean pnl_c > 0, alpha 
 ceiling. Pass = floor mean > 0 with p < 0.05. Anything else = not confirmed.
 
 **Limits:** tape-touch fills inferred from prints, no queue; paper only.
+
+## Verdict (run 2026-11-05, test exactly as registered)
+Holdout: 16 events pulled, 13 with sell_yes fills, 84 strikes.
+- floor: n 521, mean **-2.87c**, SE 3.56, one-sided p 0.78
+- ceiling: n 602, mean -2.08c, SE 3.78, p 0.70
+
+**NOT CONFIRMED.** The discovery-sample result did not replicate. The Trump-mention subset of the
+holdout looks mildly positive, but that is a post-hoc cut and is not evidence; any retest must be a
+new pre-registration on new data.
