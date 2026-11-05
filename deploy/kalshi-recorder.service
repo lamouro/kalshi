@@ -1,0 +1,11 @@
+[Unit]
+Description=Kalshi WS recorder
+After=network-online.target
+[Service]
+EnvironmentFile=/etc/kalshi/env
+WorkingDirectory=/opt/kalshi/repo
+ExecStart=/opt/kalshi/venv/bin/python -m recorder.ws_recorder --out /data/kalshi/ws --series KXTRUMPMENTION,KXTRUMPSAY,KXFEDMENTION,KXMAMDANIMENTION,KXRT,KXBTC15M,KXBTCD --trades-all
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=multi-user.target

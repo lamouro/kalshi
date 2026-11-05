@@ -1,0 +1,10 @@
+[Unit]
+Description=Kalshi keyless REST poller
+After=network-online.target
+[Service]
+WorkingDirectory=/opt/kalshi/repo
+ExecStart=/opt/kalshi/venv/bin/python -m recorder.rest_poller --out /data/kalshi/rest --series KXTRUMPMENTION,KXTRUMPSAY,KXFEDMENTION,KXMAMDANIMENTION --interval 10
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=multi-user.target
