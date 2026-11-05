@@ -5,7 +5,11 @@ variant-cell only once (dedup ticker x cell) to avoid counting duplicate variant
 import re, sys
 import numpy as np, pandas as pd
 sys.path.insert(0, ".")
-d = pd.read_csv(sys.argv[1] if len(sys.argv) > 1 else "results/raw/mention_rows.csv.gz")
+import os
+d = pd.read_csv("results/raw/mention_rows.csv.gz")
+SAMPLE = os.environ.get("SAMPLE")  # random | top_volume | unset = all
+if SAMPLE:
+    d = d[d["sample"] == SAMPLE]
 def cell(v):
     m = re.match(r"pre_(sell_yes|buy_yes|both)_\d+m_(\w+?)\d?_([\d.]+-[\d.]+)_", v)
     if m: return f"maker_{m.group(1)}_{m.group(3)}"
@@ -36,4 +40,4 @@ for (ds, c, mode), g in u.groupby(["dataset", "cell", "mode"]):
 R = pd.DataFrame(rows)
 pd.set_option("display.width", 220); pd.set_option("display.max_rows", 300)
 print(R.round(2).to_string(index=False))
-R.to_csv("results/mention_cells.csv", index=False)
+R.to_csv(f"results/mention_cells{'_' + SAMPLE if SAMPLE else ''}.csv", index=False)

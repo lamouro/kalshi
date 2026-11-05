@@ -69,15 +69,27 @@ class BandMaker(Strategy):
         return cmds
 
 
+def _flatten(e, ctx, tag):
+    """Exit inventory as a taker at the current touch (IOC). Used at the pull time so the book holds
+    no position through the live event."""
+    inv = ctx.positions.get(e.ticker, Decimal(0))
+    if inv > 0 and e.bid is not None:
+        return [Place(e.ticker, "ask", e.bid, inv, post_only=False, tag=tag)]
+    if inv < 0 and e.ask is not None:
+        return [Place(e.ticker, "bid", e.ask, -inv, post_only=False, tag=tag)]
+    return []
+
+
 class TwoSidedMaker(Strategy):
     """Quote both sides at the touch (or improved) while spread >= min_spread. Pull at close-window."""
 
     def __init__(self, min_spread="0.03", size="1", improve=True, pull_ms=900_000, max_inv="3",
-                 skew_to=None, tag=None):
+                 skew_to=None, tag=None, flatten=False):
+        self.flatten = flatten
         self.min_spread, self.size, self.improve = Decimal(min_spread), Decimal(size), improve
         self.pull_ms, self.max_inv = pull_ms, Decimal(max_inv)
         self.skew_to = skew_to       # 'sell_yes' to quote only the ask (Yes-fade), 'buy_yes' bid only
-        self.name = tag or f"mm_{min_spread}_{'imp' if improve else 'join'}_{pull_ms}_{skew_to}"
+        self.name = tag or f"mm_{min_spread}_{'imp' if improve else 'join'}_{pull_ms}_{skew_to}{'_flat' if flatten else ''}"
 
     def on_event(self, e, ctx):
         if not isinstance(e, Quote):
@@ -88,7 +100,10 @@ class TwoSidedMaker(Strategy):
         live = ctx.meta.get(t, {}).get("event_start_ms")
         stop_at = (live if live else cm)
         if stop_at is not None and ctx.now >= stop_at - self.pull_ms:
-            return [Cancel(o.oid) for o in mine]
+            out = [Cancel(o.oid) for o in mine]
+            if self.flatten and ctx.now < stop_at:
+                out += _flatten(e, ctx, self.name)
+            return out
         want = {}
         if e.bid is not None and e.ask is not None and e.ask - e.bid >= self.min_spread:
             inv = ctx.positions.get(t, Decimal(0))
@@ -152,11 +167,12 @@ class PreEventMaker(Strategy):
     max_inv: max contracts held per market (per side)."""
 
     def __init__(self, side="sell_yes", pull_ms=900_000, price_rule="join", lo="0.05", hi="0.95",
-                 min_spread="0.02", size="1", max_inv="1", offset_ticks=0, tag=None):
+                 min_spread="0.02", size="1", max_inv="1", offset_ticks=0, tag=None, flatten=False):
+        self.flatten = flatten
         self.side, self.pull, self.rule = side, pull_ms, price_rule
         self.lo, self.hi, self.min_spread = Decimal(lo), Decimal(hi), Decimal(min_spread)
         self.size, self.max_inv, self.off = Decimal(size), Decimal(max_inv), offset_ticks
-        self.name = tag or f"pre_{side}_{pull_ms//60000}m_{price_rule}{offset_ticks or ''}_{lo}-{hi}_s{min_spread}_inv{max_inv}"
+        self.name = tag or f"pre_{side}_{pull_ms//60000}m_{price_rule}{offset_ticks or ''}_{lo}-{hi}_s{min_spread}_inv{max_inv}{'_flat' if flatten else ''}"
 
     def on_event(self, e, ctx):
         if not isinstance(e, Quote):
@@ -166,7 +182,10 @@ class PreEventMaker(Strategy):
         start = meta.get("event_start_ms") or meta.get("close_ms")
         mine = [o for o in ctx.open_orders.values() if o.ticker == t and o.tag == self.name]
         if start is None or ctx.now >= start - self.pull:
-            return [Cancel(o.oid) for o in mine]
+            out = [Cancel(o.oid) for o in mine]
+            if self.flatten and start is not None and ctx.now < start:
+                out += _flatten(e, ctx, self.name)
+            return out
         want = {}
         if e.bid is not None and e.ask is not None and e.ask - e.bid >= self.min_spread:
             mid = (e.bid + e.ask) / 2

@@ -2218,5 +2218,581 @@
 "result": "yes",
 "close_time": "2026-08-05T16:02:10Z",
 "sample": "random"
+},
+"KXMAMDANIMENTION-26AUG31-COVI": {
+"event": "KXMAMDANIMENTION-26AUG31",
+"result": "yes",
+"close_time": "2026-08-31T17:40:39Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26AUG31-SANI": {
+"event": "KXMAMDANIMENTION-26AUG31",
+"result": "no",
+"close_time": "2026-08-31T17:53:43Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26AUG31-FEES": {
+"event": "KXMAMDANIMENTION-26AUG31",
+"result": "yes",
+"close_time": "2026-08-31T17:40:41Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26AUG31-NYPD": {
+"event": "KXMAMDANIMENTION-26AUG31",
+"result": "no",
+"close_time": "2026-08-31T17:40:40Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26AUG31-FIVE": {
+"event": "KXMAMDANIMENTION-26AUG31",
+"result": "yes",
+"close_time": "2026-08-31T17:40:41Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26AUG31-GOVE": {
+"event": "KXMAMDANIMENTION-26AUG31",
+"result": "no",
+"close_time": "2026-08-31T17:40:40Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP04-ECON": {
+"event": "KXMAMDANIMENTION-26SEP04",
+"result": "no",
+"close_time": "2026-09-08T15:40:29Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP04-AFFO": {
+"event": "KXMAMDANIMENTION-26SEP04",
+"result": "yes",
+"close_time": "2026-09-08T15:40:29Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP04-BQE": {
+"event": "KXMAMDANIMENTION-26SEP04",
+"result": "no",
+"close_time": "2026-09-08T15:40:30Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP04-BILL": {
+"event": "KXMAMDANIMENTION-26SEP04",
+"result": "no",
+"close_time": "2026-09-08T15:40:29Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP04-GOVE": {
+"event": "KXMAMDANIMENTION-26SEP04",
+"result": "no",
+"close_time": "2026-09-08T15:54:43Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP04-FIVE": {
+"event": "KXMAMDANIMENTION-26SEP04",
+"result": "no",
+"close_time": "2026-09-08T15:40:29Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP11-TRUM": {
+"event": "KXMAMDANIMENTION-26SEP11",
+"result": "yes",
+"close_time": "2026-09-14T16:25:18Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP11-FIVE": {
+"event": "KXMAMDANIMENTION-26SEP11",
+"result": "yes",
+"close_time": "2026-09-14T16:25:18Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP11-GOVE": {
+"event": "KXMAMDANIMENTION-26SEP11",
+"result": "no",
+"close_time": "2026-09-14T16:25:18Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP11-AIR": {
+"event": "KXMAMDANIMENTION-26SEP11",
+"result": "no",
+"close_time": "2026-09-14T16:25:18Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP11-SAFE": {
+"event": "KXMAMDANIMENTION-26SEP11",
+"result": "yes",
+"close_time": "2026-09-14T16:25:18Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP11-AI": {
+"event": "KXMAMDANIMENTION-26SEP11",
+"result": "yes",
+"close_time": "2026-09-14T16:25:17Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP15-TRUM": {
+"event": "KXMAMDANIMENTION-26SEP15",
+"result": "yes",
+"close_time": "2026-09-15T19:25:27Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP15-AI": {
+"event": "KXMAMDANIMENTION-26SEP15",
+"result": "yes",
+"close_time": "2026-09-15T19:25:27Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP15-GOVE": {
+"event": "KXMAMDANIMENTION-26SEP15",
+"result": "no",
+"close_time": "2026-09-15T19:25:28Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP15-BILL": {
+"event": "KXMAMDANIMENTION-26SEP15",
+"result": "no",
+"close_time": "2026-09-15T19:25:27Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP15-AFFO": {
+"event": "KXMAMDANIMENTION-26SEP15",
+"result": "no",
+"close_time": "2026-09-15T19:34:24Z",
+"sample": "holdout_random"
+},
+"KXMAMDANIMENTION-26SEP15-SAFE": {
+"event": "KXMAMDANIMENTION-26SEP15",
+"result": "yes",
+"close_time": "2026-09-15T19:25:28Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26AUG10-FRAU": {
+"event": "KXTRUMPMENTION-26AUG10",
+"result": "yes",
+"close_time": "2026-08-10T23:01:56Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26AUG10-ELEC": {
+"event": "KXTRUMPMENTION-26AUG10",
+"result": "yes",
+"close_time": "2026-08-10T23:01:56Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26AUG10-CRYP": {
+"event": "KXTRUMPMENTION-26AUG10",
+"result": "no",
+"close_time": "2026-08-10T23:02:21Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26AUG10-AI": {
+"event": "KXTRUMPMENTION-26AUG10",
+"result": "no",
+"close_time": "2026-08-10T23:02:21Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26AUG10-TRAN": {
+"event": "KXTRUMPMENTION-26AUG10",
+"result": "no",
+"close_time": "2026-08-10T23:02:21Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26AUG10-DRIL": {
+"event": "KXTRUMPMENTION-26AUG10",
+"result": "no",
+"close_time": "2026-08-10T23:02:22Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26AUG30-SOCI": {
+"event": "KXTRUMPMENTION-26AUG30",
+"result": "yes",
+"close_time": "2026-08-31T14:12:56Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26AUG30-NASA": {
+"event": "KXTRUMPMENTION-26AUG30",
+"result": "yes",
+"close_time": "2026-08-31T14:12:56Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26AUG30-DEMO": {
+"event": "KXTRUMPMENTION-26AUG30",
+"result": "yes",
+"close_time": "2026-08-31T14:12:56Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26AUG30-ICE": {
+"event": "KXTRUMPMENTION-26AUG30",
+"result": "no",
+"close_time": "2026-08-31T14:13:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26AUG30-NQE": {
+"event": "KXTRUMPMENTION-26AUG30",
+"result": "no",
+"close_time": "2026-08-31T14:12:59Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26AUG30-TRAN": {
+"event": "KXTRUMPMENTION-26AUG30",
+"result": "yes",
+"close_time": "2026-08-31T14:12:55Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26NOV02-RIGG": {
+"event": "KXTRUMPMENTION-26NOV02",
+"result": "no",
+"close_time": "2026-11-02T20:14:37Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26NOV02-CHIN": {
+"event": "KXTRUMPMENTION-26NOV02",
+"result": "no",
+"close_time": "2026-11-02T20:14:40Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26NOV02-ILHA": {
+"event": "KXTRUMPMENTION-26NOV02",
+"result": "no",
+"close_time": "2026-11-02T20:14:42Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26NOV02-AI": {
+"event": "KXTRUMPMENTION-26NOV02",
+"result": "no",
+"close_time": "2026-11-02T20:33:33Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26NOV02-OIL": {
+"event": "KXTRUMPMENTION-26NOV02",
+"result": "yes",
+"close_time": "2026-11-02T20:14:40Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26NOV02-TARI": {
+"event": "KXTRUMPMENTION-26NOV02",
+"result": "yes",
+"close_time": "2026-11-02T20:14:40Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26OCT08-CHIN": {
+"event": "KXTRUMPMENTION-26OCT08",
+"result": "no",
+"close_time": "2026-10-08T18:40:37Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26OCT08-CHIP": {
+"event": "KXTRUMPMENTION-26OCT08",
+"result": "yes",
+"close_time": "2026-10-08T18:40:30Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26OCT08-TESL": {
+"event": "KXTRUMPMENTION-26OCT08",
+"result": "yes",
+"close_time": "2026-10-08T18:40:30Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26OCT08-AUTO": {
+"event": "KXTRUMPMENTION-26OCT08",
+"result": "no",
+"close_time": "2026-10-08T18:40:38Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26OCT08-CANC": {
+"event": "KXTRUMPMENTION-26OCT08",
+"result": "no",
+"close_time": "2026-10-08T18:40:38Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26OCT08-MOON": {
+"event": "KXTRUMPMENTION-26OCT08",
+"result": "yes",
+"close_time": "2026-10-08T18:40:30Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26OCT14-COLO": {
+"event": "KXTRUMPMENTION-26OCT14",
+"result": "no",
+"close_time": "2026-10-14T22:24:29Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26OCT14-HEAL": {
+"event": "KXTRUMPMENTION-26OCT14",
+"result": "yes",
+"close_time": "2026-10-14T22:24:26Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26OCT14-BLOC": {
+"event": "KXTRUMPMENTION-26OCT14",
+"result": "yes",
+"close_time": "2026-10-14T22:24:29Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26OCT14-TRUMP": {
+"event": "KXTRUMPMENTION-26OCT14",
+"result": "no",
+"close_time": "2026-10-14T22:24:31Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26OCT14-ICE": {
+"event": "KXTRUMPMENTION-26OCT14",
+"result": "yes",
+"close_time": "2026-10-14T22:24:28Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26OCT14-PEAC": {
+"event": "KXTRUMPMENTION-26OCT14",
+"result": "no",
+"close_time": "2026-10-14T22:24:31Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP08-TARI": {
+"event": "KXTRUMPMENTION-26SEP08",
+"result": "no",
+"close_time": "2026-09-08T15:50:31Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP08-AMER": {
+"event": "KXTRUMPMENTION-26SEP08",
+"result": "no",
+"close_time": "2026-09-08T15:50:31Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP08-SAVE": {
+"event": "KXTRUMPMENTION-26SEP08",
+"result": "no",
+"close_time": "2026-09-08T15:50:33Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP08-IRAN": {
+"event": "KXTRUMPMENTION-26SEP08",
+"result": "no",
+"close_time": "2026-09-08T17:48:24Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP08-BIDE": {
+"event": "KXTRUMPMENTION-26SEP08",
+"result": "no",
+"close_time": "2026-09-08T15:50:35Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP08-CRYP": {
+"event": "KXTRUMPMENTION-26SEP08",
+"result": "no",
+"close_time": "2026-09-08T15:50:33Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP11-OPEN": {
+"event": "KXTRUMPMENTION-26SEP11",
+"result": "no",
+"close_time": "2026-09-12T22:38:13Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP11-NUCL": {
+"event": "KXTRUMPMENTION-26SEP11",
+"result": "no",
+"close_time": "2026-09-12T22:38:13Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP11-FAKE": {
+"event": "KXTRUMPMENTION-26SEP11",
+"result": "yes",
+"close_time": "2026-09-12T22:38:09Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP11-COMM": {
+"event": "KXTRUMPMENTION-26SEP11",
+"result": "no",
+"close_time": "2026-09-12T22:38:13Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP11-DATA": {
+"event": "KXTRUMPMENTION-26SEP11",
+"result": "no",
+"close_time": "2026-09-12T22:38:13Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP11-STOC": {
+"event": "KXTRUMPMENTION-26SEP11",
+"result": "no",
+"close_time": "2026-09-12T22:38:13Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP22-ISRA": {
+"event": "KXTRUMPMENTION-26SEP22",
+"result": "yes",
+"close_time": "2026-09-22T15:55:20Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP22-PEAC": {
+"event": "KXTRUMPMENTION-26SEP22",
+"result": "no",
+"close_time": "2026-09-22T15:55:21Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP22-BIDE": {
+"event": "KXTRUMPMENTION-26SEP22",
+"result": "no",
+"close_time": "2026-09-22T15:55:25Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP22-SLEE": {
+"event": "KXTRUMPMENTION-26SEP22",
+"result": "no",
+"close_time": "2026-09-22T15:55:25Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP22-FIRS": {
+"event": "KXTRUMPMENTION-26SEP22",
+"result": "yes",
+"close_time": "2026-09-22T15:55:23Z",
+"sample": "holdout_random"
+},
+"KXTRUMPMENTION-26SEP22-NOBE": {
+"event": "KXTRUMPMENTION-26SEP22",
+"result": "no",
+"close_time": "2026-09-22T15:55:23Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26AUG24-SOCI": {
+"event": "KXTRUMPSAY-26AUG24",
+"result": "yes",
+"close_time": "2026-08-24T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26AUG24-MELA": {
+"event": "KXTRUMPSAY-26AUG24",
+"result": "yes",
+"close_time": "2026-08-24T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26AUG24-JD": {
+"event": "KXTRUMPSAY-26AUG24",
+"result": "yes",
+"close_time": "2026-08-24T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26AUG24-URAN": {
+"event": "KXTRUMPSAY-26AUG24",
+"result": "no",
+"close_time": "2026-08-24T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26AUG24-UFO": {
+"event": "KXTRUMPSAY-26AUG24",
+"result": "no",
+"close_time": "2026-08-24T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26AUG24-BIBI": {
+"event": "KXTRUMPSAY-26AUG24",
+"result": "no",
+"close_time": "2026-08-24T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26NOV02-MARI": {
+"event": "KXTRUMPSAY-26NOV02",
+"result": "no",
+"close_time": "2026-11-02T15:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26NOV02-UFO": {
+"event": "KXTRUMPSAY-26NOV02",
+"result": "no",
+"close_time": "2026-11-02T15:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26NOV02-HOUT": {
+"event": "KXTRUMPSAY-26NOV02",
+"result": "no",
+"close_time": "2026-11-02T15:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26NOV02-ZOHR": {
+"event": "KXTRUMPSAY-26NOV02",
+"result": "no",
+"close_time": "2026-11-02T15:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26NOV02-BIBI": {
+"event": "KXTRUMPSAY-26NOV02",
+"result": "yes",
+"close_time": "2026-10-28T13:47:55Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26NOV02-EPST": {
+"event": "KXTRUMPSAY-26NOV02",
+"result": "yes",
+"close_time": "2026-10-30T14:56:23Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26OCT19-PRED": {
+"event": "KXTRUMPSAY-26OCT19",
+"result": "no",
+"close_time": "2026-10-19T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26OCT19-GOLD": {
+"event": "KXTRUMPSAY-26OCT19",
+"result": "no",
+"close_time": "2026-10-19T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26OCT19-BLOC": {
+"event": "KXTRUMPSAY-26OCT19",
+"result": "yes",
+"close_time": "2026-10-13T17:16:54Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26OCT19-MOON": {
+"event": "KXTRUMPSAY-26OCT19",
+"result": "yes",
+"close_time": "2026-10-17T02:30:49Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26OCT19-CEAS": {
+"event": "KXTRUMPSAY-26OCT19",
+"result": "no",
+"close_time": "2026-10-19T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26OCT19-MAKE": {
+"event": "KXTRUMPSAY-26OCT19",
+"result": "no",
+"close_time": "2026-10-19T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26SEP07-MELA": {
+"event": "KXTRUMPSAY-26SEP07",
+"result": "yes",
+"close_time": "2026-09-07T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26SEP07-PRED": {
+"event": "KXTRUMPSAY-26SEP07",
+"result": "no",
+"close_time": "2026-09-07T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26SEP07-KAMA": {
+"event": "KXTRUMPSAY-26SEP07",
+"result": "yes",
+"close_time": "2026-09-07T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26SEP07-GOLF": {
+"event": "KXTRUMPSAY-26SEP07",
+"result": "yes",
+"close_time": "2026-09-07T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26SEP07-WHO": {
+"event": "KXTRUMPSAY-26SEP07",
+"result": "yes",
+"close_time": "2026-09-07T14:00:00Z",
+"sample": "holdout_random"
+},
+"KXTRUMPSAY-26SEP07-SOLE": {
+"event": "KXTRUMPSAY-26SEP07",
+"result": "no",
+"close_time": "2026-09-07T14:00:00Z",
+"sample": "holdout_random"
 }
 }

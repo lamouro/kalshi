@@ -76,6 +76,20 @@ def variants_pre():
             for lo, hi in (("0.05", "0.50"), ("0.50", "0.95")):
                 V.append(("pre_taker", (lambda side=side, enter=enter, lo=lo, hi=hi:
                           PreEventTaker(side=side, enter_ms=enter * H, pull_ms=15 * 60_000, lo=lo, hi=hi))))
+    # exit-before-go-live variants: quote, then flatten as a taker at the pull time (no event exposure)
+    for side in ("sell_yes", "buy_yes", "both"):
+        for pull in (15, 60, 180):
+            for rule in ("join", "improve"):
+                for lo, hi in (("0.05", "0.50"), ("0.05", "0.95")):
+                    for inv in ("1", "5"):
+                        V.append(("pre_maker_flat", (lambda side=side, pull=pull, rule=rule, lo=lo, hi=hi, inv=inv:
+                                  PreEventMaker(side=side, pull_ms=pull * 60_000, price_rule=rule, lo=lo, hi=hi,
+                                                min_spread="0.02", max_inv=inv, flatten=True))))
+    for ms in ("0.02", "0.03", "0.06"):
+        for imp in (True, False):
+            for pull in (15, 60):
+                V.append(("two_sided_flat", (lambda ms=ms, imp=imp, pull=pull: TwoSidedMaker(
+                    min_spread=ms, improve=imp, pull_ms=pull * 60_000, max_inv="5", flatten=True))))
     V.append(("random_control", lambda: RandomEntry(every=4)))
     for ms in ("0.03", "0.06"):
         for imp in (True, False):
