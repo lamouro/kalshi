@@ -22,15 +22,25 @@ def run_grid(markets, variants, fees, modes=("floor", "ceiling"), latency_ms=250
                 meta.update(m.get("meta", {}))
                 sim.ctx.meta[m["ticker"]] = meta
                 sim.run(m["ev"])
-                for r in sim.fill_rows:
+                mos = sim.markouts()
+                ref = meta.get("event_start_ms") or meta.get("ref_ms")
+                hist = sim.mid_hist.get(m["ticker"], [])
+                for r, mo in zip(sim.fill_rows, mos):
                     if "settle" not in r:
                         continue
+                    mo_ref = None
+                    if ref and r["ts"] < ref:
+                        last = [h[1] for h in hist if h[0] <= ref]
+                        if last:
+                            sgn = 1 if r["side"] == "bid" else -1
+                            mo_ref = float(sgn * (last[-1] - r["price"]) * 100)
                     sign = 1 if r["side"] == "bid" else -1
                     pnl = sign * (float(r["settle"]) - float(r["price"])) * 100 - float(r["fee"]) / float(r["qty"]) * 100
                     rows.append(dict(family=fam, variant=s.name, mode=mode, ticker=m["ticker"],
                                      cluster=m.get("cluster", m["ticker"]), day=m["day"], ts=r["ts"],
                                      side=r["side"], price=float(r["price"]), qty=float(r["qty"]),
-                                     fee=float(r["fee"]), taker=r["taker"], pnl_c=pnl, tag=r["tag"]))
+                                     fee=float(r["fee"]), taker=r["taker"], pnl_c=pnl, tag=r["tag"],
+                                     mo_60s=mo.get("mo_60s"), mo_3600s=mo.get("mo_3600s"), mo_ref=mo_ref))
     return rows
 
 

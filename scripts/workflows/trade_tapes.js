@@ -11,8 +11,8 @@ STRIKES: ${j.strikes.map(s => s.ticker + ' (result ' + s.result + ', close ' + s
 
 STEP 1 - event start time. Try GET /milestones?limit=100&related_event_ticker=${j.event} (or /milestones?event_ticker=..., or search /milestones?category=... ), and GET /events/${j.event} . Record the scheduled start (start_date) if any. For weekly/monthly word markets, Rotten Tomatoes or Dancing with the Stars there may be no single start: then use null.
 
-STEP 2 - for EACH strike pull two windows with GET /markets/trades?ticker=TICKER&min_ts=UNIX&max_ts=UNIX&limit=200 (results come newest first; follow the cursor):
-  window OPEN: from the market open time to open + 6 hours.
+${j.windows && j.windows.length === 1 ? 'ONLY pull the ' + j.windows[0].toUpperCase() + ' window below; skip the other window entirely (write no file for it).\n\n' : ''}STEP 2 - for EACH strike pull two windows with GET /markets/trades?ticker=TICKER&min_ts=UNIX&max_ts=UNIX&limit=200 (results come newest first; follow the cursor):
+  window OPEN: the EARLIEST trades after the market open. Query min_ts=open, max_ts=open+48h. If that window needs more than 3 pages, shrink max_ts (halve the span, repeat) until the whole window fits in 3 pages or fewer, so the file holds the first trades after listing, complete from the open (never the newest ones).
   window PRE: if a start exists, from start - 24 h to start + 3 h; otherwise from close_time - 48 h to close_time.
   Stop a window after 3 pages (600 trades) and mark it truncated.
 Write one CSV per strike and window to ${OUT}/TICKER__open.csv and ${OUT}/TICKER__pre.csv with header created_time,yes_price,count,taker_book_side , oldest first. Use Bash mkdir -p ${OUT} first. /mnt/project-files is a network mount: write each file once, then re-read it after ~10 s to confirm it is there and complete.
