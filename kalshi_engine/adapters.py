@@ -89,3 +89,27 @@ def trades_csv_to_events(path: str, ticker: str, close_time: str, result: str | 
     if result in ("yes", "no"):
         ev.append(Lifecycle(ticker, cm + 1, "settle", result))
     return ev
+
+
+def trade_quotes(events, stale_ms=6 * 3600 * 1000):
+    """Derive an approximate touch from the trade tape alone: the last taker-BUY print is taken
+    as the ask, the last taker-SELL print as the bid (dropped after `stale_ms`, or when they
+    cross). Emits a Quote after each trade. This is weaker than a recorded book; results using
+    it are labelled 'tape-touch' and are bracket-only."""
+    out, bid, ask, tb, ta = [], None, None, -1, -1
+    for e in events:
+        out.append(e)
+        if isinstance(e, Trade):
+            if e.taker_side == "bid":
+                ask, ta = e.price, e.ts
+            else:
+                bid, tb = e.price, e.ts
+            b = bid if bid is not None and e.ts - tb <= stale_ms else None
+            a = ask if ask is not None and e.ts - ta <= stale_ms else None
+            if b is not None and a is not None and b >= a:
+                if e.taker_side == "bid":
+                    b = None
+                else:
+                    a = None
+            out.append(Quote(e.ticker, e.ts, b, a))
+    return out

@@ -141,3 +141,79 @@ class Combo(Strategy):
         for p in self.parts:
             out.extend(p.on_event(e, ctx) or [])
         return out
+
+
+class PreEventMaker(Strategy):
+    """Mention / scheduled-event maker. Quote passively only while ctx.now < event_start - pull_ms.
+    side: 'sell_yes' (the Yes-fade: rest asks), 'buy_yes', or 'both'.
+    price_rule: 'join' best price, 'improve' one tick inside, 'offset' k ticks behind best (safer).
+    band: only quote when the YES mid is inside [lo, hi].
+    min_spread: require at least this spread to quote (wide books only).
+    max_inv: max contracts held per market (per side)."""
+
+    def __init__(self, side="sell_yes", pull_ms=900_000, price_rule="join", lo="0.05", hi="0.95",
+                 min_spread="0.02", size="1", max_inv="1", offset_ticks=0, tag=None):
+        self.side, self.pull, self.rule = side, pull_ms, price_rule
+        self.lo, self.hi, self.min_spread = Decimal(lo), Decimal(hi), Decimal(min_spread)
+        self.size, self.max_inv, self.off = Decimal(size), Decimal(max_inv), offset_ticks
+        self.name = tag or f"pre_{side}_{pull_ms//60000}m_{price_rule}{offset_ticks or ''}_{lo}-{hi}_s{min_spread}_inv{max_inv}"
+
+    def on_event(self, e, ctx):
+        if not isinstance(e, Quote):
+            return []
+        t = e.ticker
+        meta = ctx.meta.get(t, {})
+        start = meta.get("event_start_ms") or meta.get("close_ms")
+        mine = [o for o in ctx.open_orders.values() if o.ticker == t and o.tag == self.name]
+        if start is None or ctx.now >= start - self.pull:
+            return [Cancel(o.oid) for o in mine]
+        want = {}
+        if e.bid is not None and e.ask is not None and e.ask - e.bid >= self.min_spread:
+            mid = (e.bid + e.ask) / 2
+            if self.lo <= mid <= self.hi:
+                inv = ctx.positions.get(t, Decimal(0))
+                step = TICK * self.off
+                if self.side in ("sell_yes", "both") and inv > -self.max_inv:
+                    a = e.ask - TICK if (self.rule == "improve" and e.ask - e.bid > TICK) else e.ask + step
+                    if a < 1:
+                        want["ask"] = a
+                if self.side in ("buy_yes", "both") and inv < self.max_inv:
+                    b = e.bid + TICK if (self.rule == "improve" and e.ask - e.bid > TICK) else e.bid - step
+                    if b > 0:
+                        want["bid"] = b
+        cmds, have = [], set()
+        for o in mine:
+            if want.get(o.side) == o.price:
+                have.add(o.side)
+            else:
+                cmds.append(Cancel(o.oid))
+        for sd, px in want.items():
+            if sd not in have:
+                cmds.append(Place(t, sd, px, self.size, post_only=True, tag=self.name))
+        return cmds
+
+
+class PreEventTaker(Strategy):
+    """Control: take the NO side (sell YES at the bid) once, at the first quote inside the
+    window [event_start - enter_ms, event_start - pull_ms], when the YES mid is in [lo, hi]."""
+
+    def __init__(self, side="sell_yes", enter_ms=3 * 3600_000, pull_ms=900_000, lo="0.05", hi="0.50", tag=None):
+        self.side, self.enter, self.pull = side, enter_ms, pull_ms
+        self.lo, self.hi = Decimal(lo), Decimal(hi)
+        self.name = tag or f"pretaker_{side}_{enter_ms//60000}m_{lo}-{hi}"
+        self.done = set()
+
+    def on_event(self, e, ctx):
+        if not isinstance(e, Quote) or e.ticker in self.done or e.bid is None or e.ask is None:
+            return []
+        meta = ctx.meta.get(e.ticker, {})
+        start = meta.get("event_start_ms") or meta.get("close_ms")
+        if start is None or not (start - self.enter <= ctx.now < start - self.pull):
+            return []
+        mid = (e.bid + e.ask) / 2
+        if not (self.lo <= mid <= self.hi):
+            return []
+        self.done.add(e.ticker)
+        if self.side == "sell_yes":
+            return [Place(e.ticker, "ask", e.bid, Decimal(1), post_only=False, tag=self.name)]
+        return [Place(e.ticker, "bid", e.ask, Decimal(1), post_only=False, tag=self.name)]
