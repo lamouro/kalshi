@@ -30,7 +30,7 @@ from kalshi_engine.book import Book  # noqa: E402
 from kalshi_engine.events import BookDelta, BookSnapshot, Gap, Lifecycle  # noqa: E402
 from kalshi_engine.replay import L2Replay  # noqa: E402
 from kalshi_engine.strategies.core import (BandMaker, PreEventMaker, RandomEntry,  # noqa: E402
-                                           TwoSidedMaker)
+                                           ToxicityMaker, TwoSidedMaker)
 from kalshi_engine.strategy import Strategy  # noqa: E402
 from kalshi_engine.tape_sim import Quote  # noqa: E402
 from kalshi_engine.ws_adapter import files, iter_events  # noqa: E402
@@ -74,6 +74,11 @@ def variants():
     for side in ("sell_yes", "buy_yes", "both"):
         for pull in (15, 60):
             V.append(("pre_maker", lambda side=side, pull=pull: PreEventMaker(side=side, pull_ms=pull * 60_000, max_inv="3")))
+    for ms in ("0.03", "0.05", "0.08"):
+        for w, tox in ((30_000, "5"), (60_000, "10"), (300_000, "25")):
+            for imp in (False, True):
+                V.append(("tox_maker", lambda ms=ms, w=w, tox=tox, imp=imp: ToxicityMaker(
+                    min_spread=ms, window_ms=w, tox=tox, improve=imp, max_inv="3")))
     V.append(("random_control", lambda: RandomEntry(every=20)))
     return V
 

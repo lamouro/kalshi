@@ -236,3 +236,70 @@ class PreEventTaker(Strategy):
         if self.side == "sell_yes":
             return [Place(e.ticker, "ask", e.bid, Decimal(1), post_only=False, tag=self.name)]
         return [Place(e.ticker, "bid", e.ask, Decimal(1), post_only=False, tag=self.name)]
+
+
+class ToxicityMaker(Strategy):
+    """Two-sided maker aimed at the measured loss (adverse selection), not at spread width.
+
+    * flow filter: keeps a rolling window of taker volume per direction from Trade events; when
+      net taker buying over `window_ms` exceeds `tox` contracts it stops offering (no ask), and
+      symmetrically for selling: don't stand in front of one-way flow.
+    * inventory exits passively: once |inventory| reaches max_inv only the reducing side is quoted,
+      at the touch, so a position is unwound as a maker, never by crossing.
+    * min_spread gates entry; pull_ms before event start / close as in the other makers.
+    Residual inventory is marked by the runner (mid, exit price, settlement)."""
+
+    def __init__(self, min_spread="0.03", size="1", max_inv="3", window_ms=60_000, tox="10",
+                 improve=False, pull_ms=900_000, tag=None):
+        self.min_spread, self.size, self.max_inv = Decimal(min_spread), Decimal(size), Decimal(max_inv)
+        self.window, self.tox, self.improve, self.pull = window_ms, Decimal(tox), improve, pull_ms
+        self.flow = {}          # ticker -> list[(ts, signed qty)]  (+ taker bought YES)
+        self.name = tag or f"tox_{min_spread}_w{window_ms // 1000}_t{tox}_inv{max_inv}_{'imp' if improve else 'join'}"
+
+    def on_event(self, e, ctx):
+        if isinstance(e, Trade):
+            q = self.flow.setdefault(e.ticker, [])
+            q.append((e.ts, e.count if e.taker_side == "bid" else -e.count))
+            return []
+        if not isinstance(e, Quote):
+            return []
+        t = e.ticker
+        mine = [o for o in ctx.open_orders.values() if o.ticker == t and o.tag == self.name]
+        meta = ctx.meta.get(t, {})
+        stop_at = meta.get("event_start_ms") or meta.get("close_ms")
+        if stop_at is not None and ctx.now >= stop_at - self.pull:
+            return [Cancel(o.oid) for o in mine]
+        q = self.flow.get(t, [])
+        while q and q[0][0] < ctx.now - self.window:
+            q.pop(0)
+        net = sum((x[1] for x in q), Decimal(0))
+        inv = ctx.positions.get(t, Decimal(0))
+        want = {}
+        if e.bid is not None and e.ask is not None:
+            wide = e.ask - e.bid >= self.min_spread
+            imp = self.improve and e.ask - e.bid > 2 * TICK
+            b = e.bid + TICK if imp else e.bid
+            a = e.ask - TICK if imp else e.ask
+            if inv >= self.max_inv:
+                want["ask"] = e.ask                      # unwind long passively
+            elif inv <= -self.max_inv:
+                want["bid"] = e.bid                      # unwind short passively
+            elif wide:
+                if net > -self.tox:                      # no heavy taker selling -> safe to bid
+                    want["bid"] = b
+                if net < self.tox:                       # no heavy taker buying -> safe to offer
+                    want["ask"] = a
+                if inv > 0 and "ask" not in want:
+                    want["ask"] = e.ask
+                if inv < 0 and "bid" not in want:
+                    want["bid"] = e.bid
+        cmds, have = [], set()
+        for o in mine:
+            if want.get(o.side) == o.price:
+                have.add(o.side)
+            else:
+                cmds.append(Cancel(o.oid))
+        for sd, px in want.items():
+            if sd not in have:
+                cmds.append(Place(t, sd, px, self.size, post_only=True, tag=self.name))
+        return cmds
