@@ -25,3 +25,8 @@ starts, so a window starting after the recorder connected has no snapshot and ev
 dirty (zero fills). run_l2.py now carries each market's book from all earlier files (`--warm`,
 default on) as that window's opening snapshot. The L2-1 run uses this default. Variants, prefixes,
 window and metric are unchanged.
+
+## Amendment 2 (2026-11-06, before any test-window result was seen)
+Markouts (mo_*, ex_*) now count only when the full horizon is inside the data (commit 6daf332);
+previously a fill near the end of the data used the last available point. Secondary metrics only;
+primary metric unchanged.
