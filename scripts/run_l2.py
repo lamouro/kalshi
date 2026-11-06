@@ -123,7 +123,8 @@ def main():
     ap.add_argument("--latency-ms", type=int, default=250)
     ap.add_argument("--out", default="results/raw/l2_rows.csv.gz")
     a = ap.parse_args()
-    paths = files(a.root, a.start, a.end)
+    # --root may list several folders (e.g. /data/kalshi/ws,/data/kalshi/ws_archive); merged in hour order
+    paths = sorted((x for r in a.root.split(",") for x in files(r, a.start, a.end)), key=os.path.basename)
     stats = Counter()
     per = split_by_ticker(paths, tuple(a.prefix.split(",")), stats)
     results = json.load(open(a.results)) if a.results else {}
