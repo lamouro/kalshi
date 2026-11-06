@@ -31,6 +31,7 @@ class RestingOrder:
     filled: Decimal = ZERO
     status: str = "resting"  # resting | filled | cancelled
     fills: list = field(default_factory=list)   # (ts, price, qty, cause)
+    tag: str = ""
 
     @property
     def remaining(self) -> Decimal:

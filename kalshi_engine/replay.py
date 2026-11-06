@@ -58,40 +58,56 @@ class L2Replay:
         due = [p for p in self.pending if p[0] <= ts]
         self.pending = [p for p in self.pending if p[0] > ts]
         for t_arr, c, oid in due:
+            o = self.orders.get(oid)
+            if o is None or o.status != "pending":        # cancelled while in flight
+                continue
             b = self.books.get(c.ticker)
             if b is None or b.dirty:
                 self.rejects += 1
+                o.status = "rejected"; self.ctx.open_orders.pop(oid, None)
                 continue
-            o = RestingOrder(oid, c.ticker, c.side, Decimal(c.price), Decimal(c.size), t_arr)
+            o.status = "resting"
             self.accs[oid] = FeeAccumulator()
             self.tags[oid] = c.tag
             opp_best = b.best_ask() if c.side == "bid" else b.best_bid()
             crosses = opp_best is not None and ((c.side == "bid" and o.price >= opp_best) or (c.side == "ask" and o.price <= opp_best))
             if crosses:
+                self.ctx.open_orders.pop(oid, None)
                 if c.post_only:
                     self.rejects += 1
+                    o.status = "rejected"
                     continue
                 for px, q in b.walk(c.side, o.price, o.size):
                     o.filled += q
                     self._record(o, t_arr, px, q, True, "taker")
-                continue                                  # IOC remainder dropped
+                o.status = "filled" if o.filled >= o.size else "cancelled"   # IOC remainder dropped
+                continue
             self.kros.join(o, b.size_at(c.side, o.price))
-            self.orders[oid] = o
-            self.ctx.open_orders[oid] = o
+
+    def _drop(self, o):
+        if o.status == "pending":
+            o.status = "cancelled"
+        else:
+            self.kros.cancel(o)
+        self.ctx.open_orders.pop(o.oid, None)
 
     def _exec(self, cmds, ts):
         for c in cmds or []:
             if isinstance(c, Place):
                 oid = c.coid or f"o{next(self._ids)}"
+                o = RestingOrder(oid, c.ticker, c.side, Decimal(c.price), Decimal(c.size), ts + self.lat,
+                                 status="pending", tag=c.tag)
+                self.orders[oid] = o
+                self.ctx.open_orders[oid] = o            # visible to the strategy while in flight
                 self.pending.append((ts + self.lat, c, oid))
             elif isinstance(c, Cancel):
                 o = self.orders.get(c.oid)
-                if o:
-                    self.kros.cancel(o); self.ctx.open_orders.pop(o.oid, None)
+                if o and o.oid in self.ctx.open_orders:
+                    self._drop(o)
             elif isinstance(c, CancelAll):
                 for o in list(self.ctx.open_orders.values()):
-                    if (c.ticker is None or o.ticker == c.ticker) and (c.tag is None or self.tags[o.oid] == c.tag):
-                        self.kros.cancel(o); self.ctx.open_orders.pop(o.oid, None)
+                    if (c.ticker is None or o.ticker == c.ticker) and (c.tag is None or o.tag == c.tag):
+                        self._drop(o)
 
     def run(self, events):
         for e in events:
@@ -110,7 +126,7 @@ class L2Replay:
                     cancel_part = -e.delta - traded
                     if cancel_part > 0:
                         for o in list(self.ctx.open_orders.values()):
-                            if o.ticker == t:
+                            if o.ticker == t and o.status == "resting":
                                 self.kros.on_level_decrease(o, ts, e.side, e.price, cancel_part, before)
                 if b.dirty:
                     self.dirty_flags += 1
@@ -118,7 +134,7 @@ class L2Replay:
                 hit_side = "bid" if e.taker_side == "ask" else "ask"
                 self._clock_trades[(t, e.clock or ts, hit_side, e.price)] += e.count
                 for o in list(self.ctx.open_orders.values()):
-                    if o.ticker == t:
+                    if o.ticker == t and o.status == "resting":
                         f = self.kros.on_trade(o, ts, e.price, e.count, e.taker_side)
                         if f:
                             o.filled -= f[2]               # _record re-adds via ledger only
@@ -133,7 +149,7 @@ class L2Replay:
                 if e.kind in ("close", "pause", "settle"):
                     for o in list(self.ctx.open_orders.values()):
                         if o.ticker == t:
-                            self.kros.cancel(o); self.ctx.open_orders.pop(o.oid, None)
+                            self._drop(o)
                 if e.kind == "settle" and e.result:
                     self.ledger.settle(t, e.result)
                     for r in self.fill_rows:
