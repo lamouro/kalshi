@@ -98,9 +98,13 @@ def mid_history(evs):
             result = e.result
         if isinstance(e, (BookSnapshot, BookDelta)) and not b.dirty:
             m = b.mid()
-            if m is not None and (not hist or hist[-1][1] != m):
-                hist.append((e.ts, m))
+            if m is not None and (not hist or hist[-1][1:] != (m, b.best_bid(), b.best_ask())):
+                hist.append((e.ts, m, b.best_bid(), b.best_ask()))
     return hist, result
+
+
+def taker_fee_c(p):
+    return 7 * float(p) * (1 - float(p))      # quadratic taker fee, cents per contract (pre-rounding)
 
 
 def main():
@@ -120,7 +124,7 @@ def main():
     results = json.load(open(a.results)) if a.results else {}
     meta = json.load(open(a.meta)) if a.meta else {}
     print("files", len(paths), "markets", len(per), "parse", dict(stats), flush=True)
-    rows = []
+    rows, mrows = [], []
     for t, evs in sorted(per.items()):
         hist, res = mid_history(evs)
         res = results.get(t, res)
@@ -135,6 +139,19 @@ def main():
                 if t in meta:
                     rp.ctx.meta[t] = meta[t]
                 rp.run(evs)
+                if rp.fill_rows:
+                    pos = sum((1 if r["side"] == "bid" else -1) * float(r["qty"]) for r in rp.fill_rows)
+                    cash = sum(-(1 if r["side"] == "bid" else -1) * float(r["qty"]) * float(r["price"]) * 100
+                               - float(r["fee"]) * 100 for r in rp.fill_rows)
+                    last = hist[-1]
+                    exit_px = last[2] if pos > 0 else last[3]
+                    mrow = dict(family=fam, variant=s.name, mode=mode, ticker=t, event=t.rsplit("-", 1)[0],
+                                n_fills=len(rp.fill_rows), contracts=sum(float(r["qty"]) for r in rp.fill_rows),
+                                end_pos=pos, pnl_mid_c=cash + pos * float(last[1]) * 100)
+                    mrow["pnl_exit_c"] = (cash + pos * float(exit_px) * 100 - abs(pos) * taker_fee_c(exit_px)
+                                          if pos == 0 or exit_px is not None else None)
+                    mrow["pnl_settle_c"] = cash + pos * (100.0 if res == "yes" else 0.0) if res in ("yes", "no") else None
+                    mrows.append(mrow)
                 for r in rp.fill_rows:
                     sign = 1 if r["side"] == "bid" else -1
                     px, fee_c = r["price"], float(r["fee"]) / float(r["qty"]) * 100
@@ -143,8 +160,12 @@ def main():
                                qty=float(r["qty"]), fee_c=fee_c, taker=r["taker"], cause=r["cause"])
                     for h in HORIZONS:
                         i = bisect.bisect_right(tss, r["ts"] + h) - 1
-                        row[f"mo_{h // 1000}s"] = (float(sign * (hist[i][1] - px) * 100) - fee_c
-                                                   if i >= 0 and hist[i][0] > r["ts"] else None)
+                        ok = i >= 0 and hist[i][0] > r["ts"]
+                        row[f"mo_{h // 1000}s"] = float(sign * (hist[i][1] - px) * 100) - fee_c if ok else None
+                        # exit value: cross back at the far touch at t+h and pay the taker fee
+                        ex = (hist[i][2] if sign > 0 else hist[i][3]) if ok else None
+                        row[f"ex_{h // 1000}s"] = (float(sign * (ex - px) * 100) - fee_c - taker_fee_c(ex)
+                                                   if ex is not None else None)
                     row["pnl_settle_c"] = (sign * ((1.0 if res == "yes" else 0.0) - float(px)) * 100 - fee_c) if res in ("yes", "no") else None
                     rows.append(row)
         print(t, "events", len(evs), "rows so far", len(rows), flush=True)
@@ -152,17 +173,21 @@ def main():
     df = pd.DataFrame(rows)
     with gzip.open(a.out, "wt") as f:
         df.to_csv(f, index=False)
-    print("wrote", a.out, len(df))
+    M = pd.DataFrame(mrows)
+    mout = a.out.replace("l2_rows", "l2_markets")
+    with gzip.open(mout, "wt") as f:
+        M.to_csv(f, index=False)
+    print("wrote", a.out, len(df), mout, len(M))
     if len(df):
-        summarize(df)
+        summarize(df, M)
 
 
-def summarize(df):
+def summarize(df, M=None):
     import numpy as np
     out = []
     for (v, mode), g in df.groupby(["variant", "mode"]):
         rec = dict(variant=v, mode=mode, n=len(g), markets=g.ticker.nunique(), events=g.event.nunique())
-        for col in ("mo_60s", "mo_300s", "mo_3600s", "pnl_settle_c"):
+        for col in ("mo_60s", "mo_300s", "mo_3600s", "ex_60s", "ex_300s", "ex_3600s", "pnl_settle_c"):
             x = g.dropna(subset=[col])
             if len(x) < 2:
                 continue
@@ -177,6 +202,24 @@ def summarize(df):
     pd.set_option("display.width", 250); pd.set_option("display.max_rows", 500)
     print(R.to_string(index=False))
     R.to_csv("results/l2_summary.csv", index=False)
+    if M is not None and len(M):
+        # per-market book P&L (cents per market), clustered by event
+        out = []
+        for (v, mode), g in M.groupby(["variant", "mode"]):
+            rec = dict(variant=v, mode=mode, markets=len(g), events=g.event.nunique(), contracts=g.contracts.sum())
+            for col in ("pnl_mid_c", "pnl_exit_c", "pnl_settle_c"):
+                x = g.dropna(subset=[col])
+                if len(x) < 2:
+                    continue
+                w = x.groupby("event")[col].sum()
+                k = len(w)
+                rec[col + "_per_mkt"] = round(x[col].mean(), 2)
+                rec[col + "_per_ct"] = round(x[col].sum() / x.contracts.sum(), 2)
+                rec[col + "_se_per_mkt"] = round(w.std(ddof=1) * np.sqrt(k) / len(x), 2) if k > 1 else float("nan")
+            out.append(rec)
+        Q = pd.DataFrame(out).sort_values(["mode", "variant"])
+        print(Q.to_string(index=False))
+        Q.to_csv("results/l2_market_summary.csv", index=False)
 
 
 if __name__ == "__main__":

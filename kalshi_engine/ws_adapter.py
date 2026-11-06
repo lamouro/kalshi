@@ -93,15 +93,31 @@ def iter_events(paths, tickers=None, stats: Counter | None = None):
         for t in sorted(seen):
             yield Gap(t, ts, reason)
 
+    def lines(p):
+        # a recorder restart leaves the hour's gzip without its trailer: read what is there, then
+        # treat the cut as a data break (every market dirty until its next snapshot)
+        try:
+            with gzip.open(p, "rt") as fh:
+                for line in fh:
+                    yield line
+        except (EOFError, OSError, gzip.BadGzipFile) as ex:
+            st["truncated_file"] += 1
+            yield json.dumps({"type": "_truncated", "err": repr(ex)[:100]})
+
     for p in paths:
-        with gzip.open(p, "rt") as fh:
-            for line in fh:
+        last_ts = 0
+        for line in lines(p):
                 try:
                     item = json.loads(line)
                 except Exception:
                     st["bad_line"] += 1
                     continue
+                if item.get("type") == "_truncated":
+                    last_seq.clear()
+                    yield from dirty_all(last_ts, "truncated file")
+                    continue
                 ts = int(item.get("recv_wall_ns", 0) // 1_000_000)
+                last_ts = ts or last_ts
                 typ = item.get("type")
                 if typ in ("_connect", "_gap", "_disconnect"):
                     st[typ] += 1

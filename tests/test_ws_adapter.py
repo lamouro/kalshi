@@ -92,3 +92,11 @@ def test_inflight_order_visible(tmp_path):
             return []
     r = L2Replay(Spam()).run(list(iter_events(write(tmp_path, stream()[:4]))))
     assert len(r.orders) == 1
+
+
+def test_truncated_file_is_a_gap_not_a_crash(tmp_path):
+    p = write(tmp_path, stream()[:4])[0]
+    data = open(p, "rb").read()
+    open(p, "wb").write(data[:-12])                      # chop the gzip trailer, like a crash
+    ev = list(iter_events([p]))
+    assert any(isinstance(e, Gap) and e.reason == "truncated file" for e in ev)
