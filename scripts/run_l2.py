@@ -169,6 +169,7 @@ def main():
         if len(hist) < 2:
             continue
         tss = [h[0] for h in hist]
+        end_ts = evs[-1].ts
         for fam, mk in variants():
             for mode in ("floor", "ceiling"):
                 s = mk()
@@ -198,7 +199,7 @@ def main():
                                qty=float(r["qty"]), fee_c=fee_c, taker=r["taker"], cause=r["cause"])
                     for h in HORIZONS:
                         i = bisect.bisect_right(tss, r["ts"] + h) - 1
-                        ok = i >= 0 and hist[i][0] > r["ts"]
+                        ok = i >= 0 and hist[i][0] > r["ts"] and end_ts >= r["ts"] + h   # full horizon observed
                         row[f"mo_{h // 1000}s"] = float(sign * (hist[i][1] - px) * 100) - fee_c if ok else None
                         # exit value: cross back at the far touch at t+h and pay the taker fee
                         ex = (hist[i][2] if sign > 0 else hist[i][3]) if ok else None
