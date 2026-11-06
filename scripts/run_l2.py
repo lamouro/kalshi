@@ -83,9 +83,32 @@ def variants():
     return V
 
 
-def split_by_ticker(paths, prefixes, stats):
-    per = defaultdict(list)
+def warm_books(paths, prefixes, stats):
+    """Rebuild every market's book from earlier files WITHOUT keeping their events. Kalshi sends a
+    snapshot only when a subscription starts, so a window that begins after the recorder connected
+    has deltas but no snapshot; the carried book becomes that window's opening snapshot. A market
+    whose book is dirty at the end of the warm-up (gap, cut file) stays dirty until a real one."""
+    books = {}
     for e in iter_events(paths, tickers=prefixes, stats=stats):
+        b = books.setdefault(e.ticker, Book(e.ticker))
+        if isinstance(e, BookSnapshot):
+            b.apply_snapshot(e)
+        elif isinstance(e, BookDelta):
+            b.apply_delta(e)
+        elif isinstance(e, Gap):
+            b.mark_dirty(e.reason)
+    return books
+
+
+def split_by_ticker(paths, prefixes, stats, carried=None):
+    per = defaultdict(list)
+    first_ts = None
+    for e in iter_events(paths, tickers=prefixes, stats=stats):
+        if first_ts is None:
+            first_ts = e.ts
+            for t, b in sorted((carried or {}).items()):     # opening snapshots from the warm-up
+                if not b.dirty:
+                    per[t].append(BookSnapshot(t, first_ts, dict(b.bids), dict(b.asks)))
         per[e.ticker].append(e)
     return per
 
@@ -121,12 +144,21 @@ def main():
     ap.add_argument("--results", default="")
     ap.add_argument("--meta", default="")
     ap.add_argument("--latency-ms", type=int, default=250)
+    ap.add_argument("--warm", action=argparse.BooleanOptionalAction, default=True,
+                    help="carry books from all files before --start (default on)")
     ap.add_argument("--out", default="results/raw/l2_rows.csv.gz")
     a = ap.parse_args()
     # --root may list several folders (e.g. /data/kalshi/ws,/data/kalshi/ws_archive); merged in hour order
     paths = sorted((x for r in a.root.split(",") for x in files(r, a.start, a.end)), key=os.path.basename)
     stats = Counter()
-    per = split_by_ticker(paths, tuple(a.prefix.split(",")), stats)
+    prefixes = tuple(a.prefix.split(","))
+    carried = None
+    if a.start and a.warm:
+        allp = sorted((x for r in a.root.split(",") for x in files(r, "", "~")), key=os.path.basename)
+        warm = [x for x in allp if os.path.basename(x)[7:18] < a.start]
+        carried = warm_books(warm, prefixes, Counter())
+        print("warm-up files", len(warm), "books carried", sum(not b.dirty for b in carried.values()), flush=True)
+    per = split_by_ticker(paths, prefixes, stats, carried)
     results = json.load(open(a.results)) if a.results else {}
     meta = json.load(open(a.meta)) if a.meta else {}
     print("files", len(paths), "markets", len(per), "parse", dict(stats), flush=True)
@@ -180,7 +212,7 @@ def main():
     with gzip.open(a.out, "wt") as f:
         df.to_csv(f, index=False)
     M = pd.DataFrame(mrows)
-    mout = a.out.replace("l2_rows", "l2_markets")
+    mout = a.out.replace("l2_rows", "l2_markets") if "l2_rows" in a.out else a.out.replace(".csv", "_markets.csv")
     with gzip.open(mout, "wt") as f:
         M.to_csv(f, index=False)
     print("wrote", a.out, len(df), mout, len(M))

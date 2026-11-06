@@ -18,3 +18,10 @@ list (all families). Pass = Holm p < 0.05 AND ceiling mode also > 0 AND random_c
 
 **No changes** to variants, prefixes or metric after the test window opens; any new idea gets its
 own pre-registration on later data. Paper only.
+
+## Amendment 1 (2026-11-06 ~16:00 UTC, before any test-window result was seen)
+Method fix, not a change of hypothesis: Kalshi sends book snapshots only when a subscription
+starts, so a window starting after the recorder connected has no snapshot and every book stays
+dirty (zero fills). run_l2.py now carries each market's book from all earlier files (`--warm`,
+default on) as that window's opening snapshot. The L2-1 run uses this default. Variants, prefixes,
+window and metric are unchanged.
