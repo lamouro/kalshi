@@ -19,6 +19,7 @@ import bisect
 import gzip
 import json
 import os
+import pickle
 import sys
 from collections import Counter, defaultdict
 from decimal import Decimal
@@ -83,12 +84,12 @@ def variants():
     return V
 
 
-def warm_books(paths, prefixes, stats):
+def warm_books(paths, prefixes, stats, books=None):
     """Rebuild every market's book from earlier files WITHOUT keeping their events. Kalshi sends a
     snapshot only when a subscription starts, so a window that begins after the recorder connected
     has deltas but no snapshot; the carried book becomes that window's opening snapshot. A market
     whose book is dirty at the end of the warm-up (gap, cut file) stays dirty until a real one."""
-    books = {}
+    books = {} if books is None else books
     for e in iter_events(paths, tickers=prefixes, stats=stats):
         b = books.setdefault(e.ticker, Book(e.ticker))
         if isinstance(e, BookSnapshot):
@@ -100,14 +101,35 @@ def warm_books(paths, prefixes, stats):
     return books
 
 
-def split_by_ticker(paths, prefixes, stats, carried=None):
+def _book_state(b):
+    return (dict(b.bids), dict(b.asks), b.dirty)
+
+
+def _book_from(t, v):
+    b = Book(t)
+    b.bids, b.asks, b.dirty = dict(v[0]), dict(v[1]), v[2]
+    if not b.dirty:
+        b.dirty_reason = ""
+    return b
+
+
+def traded_tickers(paths, prefixes):
+    """Cheap first pass: markets with at least one print in the window (others cannot fill)."""
+    out = set()
+    for e in iter_events(paths, tickers=prefixes):
+        if type(e).__name__ == "Trade":
+            out.add(e.ticker)
+    return out
+
+
+def split_by_ticker(paths, prefixes, stats, carried=None, keep=None):
     per = defaultdict(list)
     first_ts = None
-    for e in iter_events(paths, tickers=prefixes, stats=stats):
+    for e in iter_events(paths, tickers=keep if keep is not None else prefixes, stats=stats):
         if first_ts is None:
             first_ts = e.ts
             for t, b in sorted((carried or {}).items()):     # opening snapshots from the warm-up
-                if not b.dirty:
+                if not b.dirty and (keep is None or t in keep):
                     per[t].append(BookSnapshot(t, first_ts, dict(b.bids), dict(b.asks)))
         per[e.ticker].append(e)
     return per
@@ -144,6 +166,8 @@ def main():
     ap.add_argument("--results", default="")
     ap.add_argument("--meta", default="")
     ap.add_argument("--latency-ms", type=int, default=250)
+    ap.add_argument("--state-in", default="", help="book state pickle from the previous chunk (skips warm-up)")
+    ap.add_argument("--state-out", default="", help="write end-of-window book state for the next chunk")
     ap.add_argument("--warm", action=argparse.BooleanOptionalAction, default=True,
                     help="carry books from all files before --start (default on)")
     ap.add_argument("--out", default="results/raw/l2_rows.csv.gz")
@@ -153,12 +177,24 @@ def main():
     stats = Counter()
     prefixes = tuple(a.prefix.split(","))
     carried = None
-    if a.start and a.warm:
+    if a.state_in:
+        # book state saved by the previous chunk's --state-out: no need to re-read history
+        with open(a.state_in, "rb") as f:
+            carried = {t: _book_from(t, v) for t, v in pickle.load(f).items()}
+        print("state-in books", sum(not b.dirty for b in carried.values()), flush=True)
+    elif a.start and a.warm:
         allp = sorted((x for r in a.root.split(",") for x in files(r, "", "~")), key=os.path.basename)
         warm = [x for x in allp if os.path.basename(x)[7:18] < a.start]
         carried = warm_books(warm, prefixes, Counter())
         print("warm-up files", len(warm), "books carried", sum(not b.dirty for b in carried.values()), flush=True)
-    per = split_by_ticker(paths, prefixes, stats, carried)
+    keep = traded_tickers(paths, prefixes)
+    print("markets with prints", len(keep), flush=True)
+    per = split_by_ticker(paths, prefixes, stats, carried, keep)
+    if a.state_out:
+        end = warm_books(paths, prefixes, Counter(), {t: _book_from(t, _book_state(b)) for t, b in (carried or {}).items()})
+        with open(a.state_out, "wb") as f:
+            pickle.dump({t: _book_state(b) for t, b in end.items()}, f)
+        print("state-out books", len(end), flush=True)
     results = json.load(open(a.results)) if a.results else {}
     meta = json.load(open(a.meta)) if a.meta else {}
     print("files", len(paths), "markets", len(per), "parse", dict(stats), flush=True)

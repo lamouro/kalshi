@@ -30,3 +30,11 @@ window and metric are unchanged.
 Markouts (mo_*, ex_*) now count only when the full horizon is inside the data (commit 6daf332);
 previously a fill near the end of the data used the last available point. Secondary metrics only;
 primary metric unchanged.
+
+## Amendment 3 (2026-11-08, before any test-window P&L was seen; the interim check reported counts only)
+Execution, for memory/time on the 1.9 GB server: the window is run in 6-hour chunks with
+`scripts/run_l2_chunks.sh` (book state carried between chunks via --state-in/--state-out, settlement
+results for every chunk from one full scan, `scripts/collect_results.py`), combined with
+`scripts/combine_l2.py`. Consequence: strategy inventory and flow state reset at each chunk
+boundary (every 6 h), and residual inventory at a boundary is held to settlement like any fill.
+Only markets with at least one print in a chunk are replayed (others cannot fill).
