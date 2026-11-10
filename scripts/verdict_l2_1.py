@@ -4,7 +4,8 @@ Primary metric: per-market book P&L at settlement (pnl_settle_c, cents per marke
 event; one-sided t (H1 mean > 0) per variant in floor mode; Holm over every variant.
 Pass = Holm p < 0.05 AND the same variant's ceiling-mode mean > 0 AND random_control mean < 0.
 
-    python3 scripts/verdict_l2_1.py "results/raw/l2_1_*_l2_markets.csv.gz"
+    RESULTS=results/l2_results.json python3 scripts/verdict_l2_1.py "results/raw/l2_1_*_l2_rows.csv.gz"
+(run scripts/collect_results.py first so late settlements are included)
 """
 import glob, sys, os
 import numpy as np, pandas as pd
@@ -20,9 +21,17 @@ def rd(p):
         return pd.DataFrame()
 
 
-M = pd.concat([rd(p) for a in sys.argv[1:] for p in sorted(glob.glob(a))], ignore_index=True)
-M = M.dropna(subset=["pnl_settle_c"])
-M = M.groupby(["family", "variant", "mode", "ticker", "event"], as_index=False)["pnl_settle_c"].sum()
+# Settlement P&L per market rebuilt from the fill rows with the LATEST results file, so markets that
+# settled after a chunk ran (or after the window) count. Same arithmetic as run_l2's pnl_settle_c.
+import json
+RES = json.load(open(os.environ.get("RESULTS", "results/l2_results.json")))
+X = pd.concat([rd(p) for a in sys.argv[1:] for p in sorted(glob.glob(a))], ignore_index=True)
+X["res"] = X.ticker.map(RES)
+X = X[X.res.isin(["yes", "no"])].copy()
+sign = np.where(X.side == "bid", 1.0, -1.0)
+X["pnl_settle_c"] = (sign * ((X.res == "yes").astype(float) - X.price) * 100 - X.fee_c) * X.qty
+M = X.groupby(["family", "variant", "mode", "ticker", "event"], as_index=False)["pnl_settle_c"].sum()
+print("fills with a result:", len(X), "markets:", M.ticker.nunique(), "events:", M.event.nunique())
 
 
 def test(g):
